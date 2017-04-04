@@ -49,7 +49,7 @@ from your loop. It doesn't hurt to always call it, even in manual location mode.
 
 ### Customizing the event name
 
-The default event name is **eventLocator**. You can change that in setup using:
+The default event name is **deviceLocator**. You can change that in setup using:
 
 ```
 locator.withEventName("myEventName");
