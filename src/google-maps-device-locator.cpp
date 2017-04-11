@@ -157,13 +157,16 @@ void GoogleMapsDeviceLocator::subscriptionHandler(const char *event, const char 
 static void wifiScanCallback(WiFiAccessPoint* wap, void* data) {
 	// The - 3 factor here to leave room for the closing JSON array ] object }} and the trailing null
 	size_t spaceLeft = &requestBuf[sizeof(requestBuf) - 3] - requestCur;
+	if (spaceLeft < 30) {
+		return;
+	}
 
-	size_t sizeNeeded = snprintf(requestCur, spaceLeft,
+	int sizeNeeded = snprintf(requestCur, spaceLeft,
 			"%s{\"m\":\"%02x:%02x:%02x:%02x:%02x:%02x\",\"s\":%d,\"c\":%d}",
 			(requestCur[-1] == '[' ? "" : ","),
 			wap->bssid[0], wap->bssid[1], wap->bssid[2], wap->bssid[3], wap->bssid[4], wap->bssid[5],
 			wap->rssi, wap->channel);
-	if (sizeNeeded <= spaceLeft) {
+	if (sizeNeeded > 0 && sizeNeeded < (int)spaceLeft) {
 		// There is enough space to store the whole entry, so save it
 		requestCur += sizeNeeded;
 		numAdded++;
@@ -202,12 +205,12 @@ static void cellularAddTower(const CellularHelperEnvironmentCellData *cellData) 
 	// The - 4 factor here to leave room for the closing JSON array ], object }}, and the trailing null
 	size_t spaceLeft = &requestBuf[sizeof(requestBuf) - 4] - requestCur;
 
-	size_t sizeNeeded = snprintf(requestCur, spaceLeft,
+	int sizeNeeded = snprintf(requestCur, spaceLeft,
 			"%s{\"i\":%d,\"l\":%u,\"c\":%d,\"n\":%d}",
 			(requestCur[-1] == '[' ? "" : ","),
 			cellData->ci, cellData->lac, cellData->mcc, cellData->mnc);
 
-	if (sizeNeeded <= spaceLeft && cellData->lac != 0 && cellData->lac != 65535 && cellData->mcc != 65535 && cellData->mnc != 65535) {
+	if (sizeNeeded > 0 && sizeNeeded < (int)spaceLeft && cellData->lac != 0 && cellData->lac != 65535 && cellData->mcc != 65535 && cellData->mnc != 65535) {
 		// There is enough space to store the whole entry, so save it
 		requestCur += sizeNeeded;
 		numAdded++;
