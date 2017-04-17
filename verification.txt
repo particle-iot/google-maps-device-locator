@@ -27,3 +27,9 @@ get back either:
 in meters
 - A 404 response if the location is not known by Google geolocation
 
+The output JSON in the event data should look similar to these examples:
+
+{"c":{"o":"","a":[{"i":43351,"l":43810,"c":310,"n":260}]}}
+
+{"c":{"o":"","a":[{"i":43351,"l":43810,"c":310,"n":260},{"i":145074106,"l":11511,"c":310,"n":410}]}}
+
