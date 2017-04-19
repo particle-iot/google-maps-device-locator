@@ -4,13 +4,14 @@ The main documentation for the library is here:
 https://docs.particle.io/tutorials/integrations/google-maps/
 
 The device locator uses either Wi-Fi base station or Cellular tower information to do
-geolocation using Particle.publish and the Google Geolocation API. An Google Maps Device
+geolocation using Particle.publish and the Google Geolocation API. The Google Maps Device
 Locator Integration handles interfacing the publish and the Google API.
 
 Currently supported platforms: Photon, P1, and Electron
+Tested on system firmware versions: 0.6.1, 0.6.0 and 0.5.3
 
 Not supported: Core and Raspberry Pi (because they do not provide the necessary BSSID 
-information), and Bluz (because it was neither Wi-Fi nor cellular).
+information), and Bluz (because it has neither Wi-Fi nor cellular).
 
 Testing
 =======
