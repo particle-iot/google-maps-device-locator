@@ -47,6 +47,15 @@ GoogleMapsDeviceLocator &GoogleMapsDeviceLocator::withSubscribe(GoogleMapsDevice
 	return *this;
 }
 
+GoogleMapsDeviceLocator &GoogleMapsDeviceLocator::withOperator(const char *oper, int mcc, int mnc) {
+	this->oper = oper;
+	this->mcc = mcc;
+	this->mnc = mnc;
+	return *this;
+}
+
+
+
 void GoogleMapsDeviceLocator::loop() {
 	switch(state) {
 	case CONNECT_WAIT_STATE:
@@ -157,16 +166,13 @@ void GoogleMapsDeviceLocator::subscriptionHandler(const char *event, const char 
 static void wifiScanCallback(WiFiAccessPoint* wap, void* data) {
 	// The - 3 factor here to leave room for the closing JSON array ] object }} and the trailing null
 	size_t spaceLeft = &requestBuf[sizeof(requestBuf) - 3] - requestCur;
-	if (spaceLeft < 30) {
-		return;
-	}
 
-	int sizeNeeded = snprintf(requestCur, spaceLeft,
+	size_t sizeNeeded = snprintf(requestCur, spaceLeft,
 			"%s{\"m\":\"%02x:%02x:%02x:%02x:%02x:%02x\",\"s\":%d,\"c\":%d}",
 			(requestCur[-1] == '[' ? "" : ","),
 			wap->bssid[0], wap->bssid[1], wap->bssid[2], wap->bssid[3], wap->bssid[4], wap->bssid[5],
 			wap->rssi, wap->channel);
-	if (sizeNeeded > 0 && sizeNeeded < (int)spaceLeft) {
+	if (sizeNeeded <= spaceLeft) {
 		// There is enough space to store the whole entry, so save it
 		requestCur += sizeNeeded;
 		numAdded++;
@@ -205,12 +211,12 @@ static void cellularAddTower(const CellularHelperEnvironmentCellData *cellData) 
 	// The - 4 factor here to leave room for the closing JSON array ], object }}, and the trailing null
 	size_t spaceLeft = &requestBuf[sizeof(requestBuf) - 4] - requestCur;
 
-	int sizeNeeded = snprintf(requestCur, spaceLeft,
+	size_t sizeNeeded = snprintf(requestCur, spaceLeft,
 			"%s{\"i\":%d,\"l\":%u,\"c\":%d,\"n\":%d}",
 			(requestCur[-1] == '[' ? "" : ","),
 			cellData->ci, cellData->lac, cellData->mcc, cellData->mnc);
 
-	if (sizeNeeded > 0 && sizeNeeded < (int)spaceLeft && cellData->lac != 0 && cellData->lac != 65535 && cellData->mcc != 65535 && cellData->mnc != 65535) {
+	if (sizeNeeded <= spaceLeft && cellData->lac != 0 && cellData->lac != 65535 && cellData->mcc != 65535 && cellData->mnc != 65535) {
 		// There is enough space to store the whole entry, so save it
 		requestCur += sizeNeeded;
 		numAdded++;
@@ -218,7 +224,49 @@ static void cellularAddTower(const CellularHelperEnvironmentCellData *cellData) 
 
 }
 
+const char *GoogleMapsDeviceLocator::cellularScanLTE() {
+
+	CellularHelperCREGResponse resp;
+	CellularHelper.getCREG(resp);
+
+	Serial.println(resp.toString().c_str());
+
+	// We know these things fit, so just using sprintf instead of snprintf here
+	requestCur += sprintf(requestCur, "{\"c\":{\"o\":\"%s\",", oper.c_str());
+
+	requestCur += sprintf(requestCur, "\"a\":[");
+
+	if (resp.valid) {
+		requestCur += sprintf(requestCur,
+					"{\"i\":%d,\"l\":%u,\"c\":%d,\"n\":%d}",
+					resp.ci, resp.lac, mcc, mnc);
+
+		numAdded++;
+	}
+
+	*requestCur++ = ']';
+	*requestCur++ = '}';
+	*requestCur++ = '}';
+	*requestCur++ = 0;
+
+
+
+	if (numAdded == 0) {
+		requestBuf[0] = 0;
+	}
+
+	return requestBuf;
+}
+
+
 const char *GoogleMapsDeviceLocator::cellularScan() {
+
+	requestCur = requestBuf;
+	numAdded = 0;
+
+	if (CellularHelper.isLTE()) {
+		return cellularScanLTE();
+	}
 
 	// First try to get info on neighboring cells. This doesn't work for me using the U260
 	CellularHelperEnvironmentResponseStatic<4> envResp;
@@ -231,9 +279,6 @@ const char *GoogleMapsDeviceLocator::cellularScan() {
 	}
 	// envResp.serialDebug();
 
-
-	requestCur = requestBuf;
-	numAdded = 0;
 
 	// We know these things fit, so just using sprintf instead of snprintf here
 	requestCur += sprintf(requestCur, "{\"c\":{\"o\":\"%s\",",

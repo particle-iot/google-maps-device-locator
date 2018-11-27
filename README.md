@@ -82,3 +82,20 @@ The library uses the logging feature of system firmware 0.6.0 or later when buil
 ```
 SerialLogHandler logHandler;
 ```
+
+### Special Notes for LTE (SARA-R410M-02B)
+
+The E Series LTE has a slightly different command set than the SARA-U and SARA-G used in the previous Electrons. It is unfortunately missing the environment command (AT+CGED) used to get the cellular tower information.
+
+You can still get approximate (1 tower) location information in the United States on AT&T, which is currently the only place you can use the E Series LTE.
+
+Because there is no efficient command to get the operator, MCC, and MNC on the LTE modem, if you are using a 3rd-party SIM card in a Boron LTE, you would need to pass the information in manually. Thus you can only get location information if you know approximately where you are. This is not ideal, but better than nothing. The `withOperator(const char *oper, int mcc, int mnc)` method of the locator object allows you to pass in this information.
+
+The default is "AT&T", 310, 410.
+
+## Version History
+
+- 0.0.5 (2018-11-27) Added support for LTE in the United States, upgrade to CellularHelper 0.0.7
+
+
+
