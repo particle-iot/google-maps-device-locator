@@ -1,5 +1,8 @@
 #include "google-maps-device-locator.h"
 
+// Uncomment to show debugging logs
+// SerialLogHandler logHandler(LOG_LEVEL_TRACE);
+
 GoogleMapsDeviceLocator locator;
 
 void setup() {

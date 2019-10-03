@@ -4,6 +4,12 @@
 
 #include "Particle.h"
 
+#if defined(SYSTEM_VERSION_v121) && defined(Wiring_Cellular)
+#define HAS_CELLULAR_GLOBAL_IDENTITY 1
+#else
+#define HAS_CELLULAR_GLOBAL_IDENTITY 0
+#endif
+
 /**
  * This is the callback function prototype for the callback if you use the
  * withSubscribe() method to be notified of your own location.
@@ -51,7 +57,10 @@ public:
 	GoogleMapsDeviceLocator &withSubscribe(GoogleMapsDeviceLocatorSubscriptionCallback callback);
 
 	/**
-	 * Use this method to set the operator, mcc, and mnc when using LTE
+	 * Deprecated. No longer needed in Device OS 1.2.1 and later.
+	 *
+	 * Use this method to set the operator, mcc, and mnc when using LTE in Device OS prior to 1.2.1.
+	 * This does not work on the Boron LTE.
 	 *
 	 * The SARA-R410M-02B cannot get this information using AT+UCGED, so you need to pass it in
 	 * manually. Fortunately, in the United States with the Particle SIM it's always
@@ -83,6 +92,10 @@ protected:
 
 #if Wiring_WiFi
 	const char *wifiScan();
+#endif
+
+#if HAS_CELLULAR_GLOBAL_IDENTITY
+	const char *cellularScanCGI();
 #endif
 
 #if Wiring_Cellular

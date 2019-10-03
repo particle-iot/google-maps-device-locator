@@ -85,17 +85,31 @@ SerialLogHandler logHandler;
 
 ### Special Notes for LTE (SARA-R410M-02B)
 
-The E Series LTE has a slightly different command set than the SARA-U and SARA-G used in the previous Electrons. It is unfortunately missing the environment command (AT+CGED) used to get the cellular tower information.
+For LTE devices, it's strongly recommended to use this library with Device OS 1.2.1 or later only. 
 
-You can still get approximate (1 tower) location information in the United States on AT&T, which is currently the only place you can use the E Series LTE.
+The Boron LTE and B Series B402 SoM both require 1.2.1 to use the device locator and will not work with older versions of Device OS.
 
-Because there is no efficient command to get the operator, MCC, and MNC on the LTE modem, if you are using a 3rd-party SIM card in a Boron LTE, you would need to pass the information in manually. Thus you can only get location information if you know approximately where you are. This is not ideal, but better than nothing. The `withOperator(const char *oper, int mcc, int mnc)` method of the locator object allows you to pass in this information.
+If you must use a version of Device OS older than 1.2.1:
 
-The default is "AT&T", 310, 410.
+- The Boron LTE cannot use the device locator with Device OS older than 1.2.1
+- The E Series LTE and Electron LTE require the use of the `withOperator()` method to manually set the MCC, MNC, and operator if not 
+
+The `withOperator(const char *oper, int mcc, int mnc)` method of the locator object allows you to pass in this information. The default is "AT&T", 310, 410.
+
+Note that because `withOperator()` is no longer needed with Device OS 1.2.1 and later, it will eventually be removed.
+
 
 ## Version History
 
-- 0.0.5 (2018-11-27) Added support for LTE in the United States, upgrade to CellularHelper 0.0.7
+#### 0.0.6 (2019-10-03)
+
+- Added support for the Boron LTE and B Series B402 SoM when using Device OS 1.2.1 and later.
+- The `withOperator()` function is no longer needed for LTE when using Device OS 1.2.1 and later. 
+
+
+#### 0.0.5 (2018-11-27) 
+
+- Added support for LTE in the United States, upgrade to CellularHelper 0.0.7
 
 
 

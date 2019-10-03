@@ -224,12 +224,54 @@ static void cellularAddTower(const CellularHelperEnvironmentCellData *cellData) 
 
 }
 
+#if HAS_CELLULAR_GLOBAL_IDENTITY
+const char *GoogleMapsDeviceLocator::cellularScanCGI() {
+
+	*requestCur = 0;
+
+	// getOperatorName (AT+UDOPN) is not supported on LTE (SARA-R410M-02-B) but the function
+	// will return an empty string which is fine.
+	String oper = CellularHelper.getOperatorName();
+
+	CellularGlobalIdentity cgi = {0};
+	cgi.size = sizeof(CellularGlobalIdentity);
+	cgi.version = CGI_VERSION_LATEST;
+
+	cellular_result_t res = cellular_global_identity(&cgi, NULL);
+	if (res == SYSTEM_ERROR_NONE) {
+		// We know these things fit, so just using sprintf instead of snprintf here
+		requestCur += sprintf(requestCur, "{\"c\":{\"o\":\"%s\",", oper.c_str());
+
+		requestCur += sprintf(requestCur, "\"a\":[");
+
+		requestCur += sprintf(requestCur,
+					"{\"i\":%d,\"l\":%u,\"c\":%d,\"n\":%d}",
+					cgi.cell_id, cgi.location_area_code, cgi.mobile_country_code, cgi.mobile_network_code);
+
+		numAdded++;
+
+		*requestCur++ = ']';
+		*requestCur++ = '}';
+		*requestCur++ = '}';
+		*requestCur++ = 0;
+	}
+	else {
+		// Serial.printlnf("cellular_global_identity failed %d", res);
+	}
+
+	return requestBuf;
+}
+#endif /* HAS_CELLULAR_GLOBAL_IDENTITY */
+
+// This is only useful on the Electron and E Series LTE before Device OS 1.2.1.
+// It does not work on the Boron LTE. The cellular global identity (CGI) version
+// is better, and this will eventually be deprecated.
 const char *GoogleMapsDeviceLocator::cellularScanLTE() {
 
 	CellularHelperCREGResponse resp;
 	CellularHelper.getCREG(resp);
 
-	Serial.println(resp.toString().c_str());
+	// Serial.println(resp.toString().c_str());
 
 	// We know these things fit, so just using sprintf instead of snprintf here
 	requestCur += sprintf(requestCur, "{\"c\":{\"o\":\"%s\",", oper.c_str());
@@ -263,6 +305,25 @@ const char *GoogleMapsDeviceLocator::cellularScan() {
 
 	requestCur = requestBuf;
 	numAdded = 0;
+
+#if HAS_CELLULAR_GLOBAL_IDENTITY
+	{
+		static bool modelChecked = false;
+		static bool useCGI = false;
+
+		if (!modelChecked) {
+			modelChecked = true;
+
+			// Use Cellular Global Identity (CGI) on Device OS 1.2.1 and later
+			// if the modem is not a global 2G (G350). On the G350, AT+CGEG=5
+			// works so a better multi-tower result can be returned.
+			useCGI = !CellularHelper.getModel().startsWith("SARA-G350");
+		}
+		if (useCGI) {
+			return cellularScanCGI();
+		}
+	}
+#endif
 
 	if (CellularHelper.isLTE()) {
 		return cellularScanLTE();
