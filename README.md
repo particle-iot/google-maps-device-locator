@@ -101,6 +101,10 @@ Note that because `withOperator()` is no longer needed with Device OS 1.2.1 and 
 
 ## Version History
 
+#### 0.0.7 (2020-08-12)
+
+- Fix compiler warning with 2.0.0.
+
 #### 0.0.6 (2019-10-03)
 
 - Added support for the Boron LTE and B Series B402 SoM when using Device OS 1.2.1 and later.

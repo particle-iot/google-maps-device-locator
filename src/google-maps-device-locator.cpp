@@ -245,7 +245,7 @@ const char *GoogleMapsDeviceLocator::cellularScanCGI() {
 		requestCur += sprintf(requestCur, "\"a\":[");
 
 		requestCur += sprintf(requestCur,
-					"{\"i\":%d,\"l\":%u,\"c\":%d,\"n\":%d}",
+					"{\"i\":%lu,\"l\":%u,\"c\":%u,\"n\":%u}",
 					cgi.cell_id, cgi.location_area_code, cgi.mobile_country_code, cgi.mobile_network_code);
 
 		numAdded++;
