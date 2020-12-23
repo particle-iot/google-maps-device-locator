@@ -123,12 +123,30 @@ void GoogleMapsDeviceLocator::publishLocation() {
 
 	Serial.printlnf("scanData=%s", scanData);
 
-	if (scanData[0]) {
-
-		if (Particle.connected()) {
-			Particle.publish(eventName, scanData, PRIVATE);
-		}
-	}
+    if(enable_publish)
+    {
+        if (scanData[0]) {
+            if(google_location_cb)
+            {
+                String ext_scan = google_location_cb(scanData);
+                if (Particle.connected())
+                {
+                    Particle.publish(eventName, ext_scan.c_str(), PRIVATE);
+                }
+            }
+            else
+            {
+                if (Particle.connected())
+                {
+                    Particle.publish(eventName, scanData, PRIVATE);
+                }
+            }
+        }
+    }
+    else
+    {
+	    Serial.println("google device locator publish disabled");
+    }
 }
 
 void GoogleMapsDeviceLocator::subscriptionHandler(const char *event, const char *data) {
