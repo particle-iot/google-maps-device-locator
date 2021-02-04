@@ -19,11 +19,19 @@
  * accuracy is the accuracy radius in meters
  */
 typedef void (*GoogleMapsDeviceLocatorSubscriptionCallback)(float lat, float lon, float accuracy);
+typedef std::function<String(const char *name)> google_location_cb_t;
 
 class GoogleMapsDeviceLocator {
+private:
+    google_location_cb_t google_location_cb = NULL;
+    bool enable_publish = true;
+
 public:
 	GoogleMapsDeviceLocator();
 	virtual ~GoogleMapsDeviceLocator();
+
+    void register_google_location_cb(google_location_cb_t cb) {google_location_cb = cb;}
+    void enable_publish_location(bool enable) {enable_publish = enable;}
 
 	/**
 	 * If you use withLocateOnce() then the location will be updated once after you've
