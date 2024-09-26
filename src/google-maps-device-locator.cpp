@@ -117,11 +117,9 @@ const char *GoogleMapsDeviceLocator::scan() {
 
 void GoogleMapsDeviceLocator::publishLocation() {
 
-	Serial.println("publishLocation");
-
 	const char *scanData = scan();
 
-	Serial.printlnf("scanData=%s", scanData);
+	Log.info("publishLocation scanData=%s", scanData);
 
 	if (scanData[0]) {
 
@@ -256,7 +254,7 @@ const char *GoogleMapsDeviceLocator::cellularScanCGI() {
 		*requestCur++ = 0;
 	}
 	else {
-		// Serial.printlnf("cellular_global_identity failed %d", res);
+		// Log.info("cellular_global_identity failed %d", res);
 	}
 
 	return requestBuf;
@@ -271,7 +269,7 @@ const char *GoogleMapsDeviceLocator::cellularScanLTE() {
 	CellularHelperCREGResponse resp;
 	CellularHelper.getCREG(resp);
 
-	// Serial.println(resp.toString().c_str());
+	// Log.info("cellularScanLTE %s", resp.toString().c_str());
 
 	// We know these things fit, so just using sprintf instead of snprintf here
 	requestCur += sprintf(requestCur, "{\"c\":{\"o\":\"%s\",", oper.c_str());

@@ -101,6 +101,11 @@ Note that because `withOperator()` is no longer needed with Device OS 1.2.1 and 
 
 ## Version History
 
+#### 0.0.8 (2024-09-26)
+
+- Remove Serial calls, use only Log calls
+- Update CellularHelper to 0.2.7
+
 #### 0.0.7 (2020-08-12)
 
 - Fix compiler warning with 2.0.0.
